@@ -40,7 +40,9 @@ resource "azapi_update_resource" "approval" {
 
   lifecycle {
     ignore_changes = [
-      name
+      name,
+      output,
+      body.properties.privateLinkServiceConnectionState.description,
     ]
   }
 }
