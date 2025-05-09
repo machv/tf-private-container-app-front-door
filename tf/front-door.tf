@@ -1,5 +1,5 @@
 locals {
-  front_door_name = "fd-${var.front_door_name}"
+  front_door_name = "fd-001"
   workspace_name  = "log-fd-001"
 }
 

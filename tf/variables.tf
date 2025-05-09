@@ -10,9 +10,14 @@ variable "resource_group_name" {
   type        = string
 }
 
+variable "cae_resource_group_name" {
+  description = "Name for automatically created resource group for the container app environment"
+  type    = string
+  default = "aca-fd-demo-cae-001"
+}
+
 variable "vnet_name" {
-  description = "Specifies the name of the hub virtual virtual network"
-  default     = "vnet-spoke"
+  default     = "vnet-app-011"
   type        = string
 }
 
@@ -31,31 +36,18 @@ variable "vnet_subnets" {
     delegations                                   = optional(list(string), [])
   }))
   default = [
-  {
-    name             = "PrivateEndpointSubnet001"
-    address_prefixes = ["10.201.8.64/26"]
-  },
-  {
-    name             = "ContainerAppsSubnet001"
-    address_prefixes = ["10.201.8.128/26"]
-    delegations = [
-      "Microsoft.App/environments"
-    ]
-  },
-]
+    {
+      name             = "ServersSubnet001"
+      address_prefixes = ["10.201.8.0/26"]
+    },
+    {
+      name             = "ContainerAppsSubnet001"
+      address_prefixes = ["10.201.8.64/26"]
+      delegations = [
+        "Microsoft.App/environments"
+      ]
+    },
+  ]
 }
 
-variable "cae_resource_group_name" {
-  type    = string
-  default = "aca-fd-demo-cae-001"
-}
 
-variable "front_door_name" {
-  type = string
-  default = "001"
-}
-
-variable "container_app_name" {
-  type = string
-  default = "helloworld"
-}

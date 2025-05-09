@@ -2,6 +2,7 @@ locals {
   cae_log_name              = "log-cae-001"
   cae_name                  = "cae-001"
   cae_managed_identity_name = "mi-cae-001"
+  container_app_name        = "aca-helloworld-001"
 }
 
 resource "azurerm_log_analytics_workspace" "cae" {
@@ -34,25 +35,6 @@ resource "azurerm_container_app_environment" "cae" {
   }
 }
 
-// in order to enable MI on CAE, we need to use azapi as a workaround
-// this MI is needed to access Key Vault certificate for custom domain
-resource "azapi_resource_action" "identitypatch" {
-  type        = "Microsoft.App/managedEnvironments@2024-10-02-preview"
-  resource_id = azurerm_container_app_environment.cae.id
-  method      = "PATCH"
-
-  body = {
-    identity = {
-      type = "SystemAssigned, UserAssigned"
-      userAssignedIdentities = {
-        "${azurerm_user_assigned_identity.cae.id}" = {}
-      }
-    }
-  }
-
-  response_export_values = ["*"]
-}
-
 resource "azurerm_private_dns_zone" "cae" {
   name                = azurerm_container_app_environment.cae.default_domain
   resource_group_name = azurerm_resource_group.rg.name
@@ -75,3 +57,37 @@ resource "azurerm_private_dns_a_record" "cae" {
   records             = [azurerm_container_app_environment.cae.static_ip_address]
 }
 
+resource "azurerm_container_app" "app" {
+  name                         = local.container_app_name
+  container_app_environment_id = azurerm_container_app_environment.cae.id
+  resource_group_name          = azurerm_resource_group.rg.name
+  revision_mode                = "Single"
+  workload_profile_name        = "Consumption"
+  template {
+    container {
+      name   = "quickstart"
+      image  = "mcr.microsoft.com/k8se/quickstart:latest"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+
+  ingress {
+    target_port      = 80
+    external_enabled = true
+    traffic_weight {
+      percentage      = 100
+      latest_revision = true
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      template,
+      ingress,
+      secret,
+      registry,
+      revision_mode,
+    ]
+  }
+}

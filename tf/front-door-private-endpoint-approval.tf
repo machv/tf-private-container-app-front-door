@@ -4,14 +4,19 @@ data "azapi_resource_list" "cae_private_endpoints" {
   response_export_values = ["value"]
 
   depends_on = [
-    azapi_resource.uep_test_govauth_aca
+    azurerm_cdn_frontdoor_origin.helloworld_aca
   ]
 }
 
 locals {
-  parsed_json             = (data.azapi_resource_list.cae_private_endpoints.output)
-  pending_items           = [for item in local.parsed_json.value : item.properties.privateLinkServiceConnectionState.status == "Pending" ? item : null]
+  pending_items           = [for item in data.azapi_resource_list.cae_private_endpoints.output.value : item.properties.privateLinkServiceConnectionState.status == "Pending" ? item : null]
   compacted_pending_items = [for item in local.pending_items : item if item != null]
+}
+
+resource "time_sleep" "wait_30_seconds" {
+  depends_on = [data.azapi_resource_list.cae_private_endpoints]
+
+  create_duration = "30s"
 }
 
 resource "azapi_update_resource" "approval" {
@@ -29,10 +34,13 @@ resource "azapi_update_resource" "approval" {
   }
 
   depends_on = [
-    data.azapi_resource_list.cae_private_endpoints
+    data.azapi_resource_list.cae_private_endpoints,
+    time_sleep.wait_30_seconds,
   ]
 
   lifecycle {
-    ignore_changes = [name]
+    ignore_changes = [
+      name
+    ]
   }
 }

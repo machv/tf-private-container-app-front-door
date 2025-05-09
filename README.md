@@ -1,6 +1,6 @@
 # Container App demo via Front Door
 
-Private Container App Environment published via Front Door with Private Link connection
+Internal Container App Environment with App published externally via Front Door with Private Link connection
 
 ## Set Subscription ID via command-line
 ```

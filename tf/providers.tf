@@ -2,7 +2,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">= 3.19.0"
+      version = ">= 4.27.0" # 4.27.0 added support for managedEnvironments in Front Door Origin
     }
 
     azapi = {
